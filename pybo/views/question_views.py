@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, url_for, request, g, flash
 from werkzeug.utils import redirect
 
 from .. import db
-from ..models import Question
+from ..models import Question, question_voter, User
 from ..forms import QuestionForm, AnswerForm
 
 from pybo.views.auth_views import login_required
@@ -69,3 +69,20 @@ def delete(question_id):
     db.session.delete(question)
     db.session.commit()
     return redirect(url_for('question._list'))
+
+
+@bp.route('/vote/<int:question_id>/')
+@login_required
+def vote(question_id):
+    _question = Question.query.get_or_404(question_id)
+    current_user = User.query.join(question_voter).filter_by(user_id=g.user.id).first()
+
+    if g.user != current_user:
+        if g.user == _question.user:
+            flash("본인이 작성한 글은 추천할 수 없습니다")
+        else:
+            _question.voter.append(g.user)
+            db.session.commit()
+    else:
+        flash("이미 추천한 질문 입니다")
+    return redirect(url_for('question.detail', question_id=question_id))
