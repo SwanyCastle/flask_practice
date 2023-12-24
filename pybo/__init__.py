@@ -2,6 +2,7 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
+from flaskext.markdown import Markdown
 
 import config
 
@@ -38,8 +39,11 @@ def create_app():
     app.register_blueprint(answer_views.bp)
     app.register_blueprint(auth_views.bp)
 
-    #필터
+    # 필터
     from .filter import format_datetime
     app.jinja_env.filters['datetime'] = format_datetime
+
+    # Markdown
+    Markdown(app, extensions=['nl2br', 'fenced_code'])
 
     return app
